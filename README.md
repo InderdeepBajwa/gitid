@@ -18,7 +18,9 @@ Here's how you can use the different commands of this CLI:
 
   ```
   gitid new <identity>
+  ```
 
+  ```
   # example
   gitid new personal
   ```
@@ -47,7 +49,9 @@ Here's how you can use the different commands of this CLI:
 
   ```
   gitid use <identity>
+  ```
 
+  ```
   # example
   gitid use personal
   ```
@@ -61,8 +65,6 @@ GitID is your solution if you are:
 - Having a hard time managing multiple Git identity files on a single user account
 - Struggling with permission issues when accidentally pushing from a wrong identity file
 - Tired of having to modify git URLs every time you clone or add a new remote
-
-Sure, a good README generally contains the following sections:
 
 ## Manual Installation and Contribution
 
