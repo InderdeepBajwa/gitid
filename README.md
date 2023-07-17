@@ -11,7 +11,7 @@ Here's how you can use the different commands of this CLI:
   This will create a new SSH identity.
 
   ```
-  gitid new <identity>
+  npx gitid new <identity>
   ```
 
   Replace `<identity>` with the desired name for your new identity.
@@ -21,7 +21,7 @@ Here's how you can use the different commands of this CLI:
   This will list all available identities.
 
   ```
-  gitid list
+  npx gitid list
   ```
 
 - **Check current identity:**
@@ -29,7 +29,7 @@ Here's how you can use the different commands of this CLI:
   This will output the current identity.
 
   ```
-  gitid current
+  npx gitid current
   ```
 
 - **Use identity:**
@@ -37,7 +37,7 @@ Here's how you can use the different commands of this CLI:
   This will change the Git identity for the repository in the current directory to a specified identity.
 
   ```
-  gitid use <identity>
+  npx gitid use <identity>
   ```
 
   Replace `<identity>` with the name of the identity you want to use.
