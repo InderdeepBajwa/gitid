@@ -2,6 +2,12 @@
 
 GitID is a convenient command-line interface (CLI) that allows you seamlessly manage and switch between multiple git SSH identities on a single user account.
 
+## Installation
+
+```
+npm install -g gitid
+```
+
 ## Usage
 
 Here's how you can use the different commands of this CLI:
@@ -11,10 +17,10 @@ Here's how you can use the different commands of this CLI:
   This will create a new `ed25519` SSH identity.
 
   ```
-  npx gitid new <identity>
-  
+  gitid new <identity>
+
   # example:
-  npx gitid new personal
+  gitid new personal
   ```
 
   Replace `<identity>` with the desired name for your new identity.
@@ -24,7 +30,7 @@ Here's how you can use the different commands of this CLI:
   This will list all available identities.
 
   ```
-  npx gitid list
+  gitid list
   ```
 
 - **Check current identity:**
@@ -32,7 +38,7 @@ Here's how you can use the different commands of this CLI:
   This will output the current identity.
 
   ```
-  npx gitid current
+  gitid current
   ```
 
 - **Use identity:**
@@ -40,10 +46,10 @@ Here's how you can use the different commands of this CLI:
   This will change the Git identity for the repository in the current directory to a specified identity.
 
   ```
-  npx gitid use <identity>
+  gitid use <identity>
 
   # example:
-  npx gitid use personal
+  gitid use personal
   ```
 
   Replace `<identity>` with the name of the identity you want to use.
