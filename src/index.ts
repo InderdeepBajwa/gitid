@@ -4,8 +4,13 @@ const cli = new CLI();
 
 const argument = process.argv.slice(2);
 
-if (argument[0] === "new") {
-  cli.newCommand(argument[1]);
-} else {
-  console.log("Usage: gitta new <key-alias>");
+switch (argument[0]) {
+  case "new":
+    cli.newCommand(argument[1]);
+    break;
+  case "status":
+    cli.curentIdentity();
+    break;
+  default:
+    console.log("Usage: gitta new <key-alias>");
 }
