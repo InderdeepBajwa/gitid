@@ -1,9 +1,9 @@
 {
   "name": "gitid",
-  "version": "0.1.2-beta",
+  "version": "0.1.2-alpha",
   "description": "Manage multiple git accounts easily",
   "main": "dist/index.js",
-  "repository": "https://github.com/InderdeepBajwa/gitta",
+  "repository": "https://github.com/InderdeepBajwa/gitid",
   "author": "Inderdeep Singh Bajwa",
   "license": "MIT",
   "scripts": {
