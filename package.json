@@ -1,11 +1,14 @@
 {
   "name": "gitid",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Manage multiple git accounts easily",
   "main": "dist/index.js",
   "repository": "https://github.com/InderdeepBajwa/gitid",
   "author": "Inderdeep Singh Bajwa",
   "license": "MIT",
+  "bin": {
+    "gitid": "./dist/index.js"
+  },
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc"
