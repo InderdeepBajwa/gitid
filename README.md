@@ -64,13 +64,13 @@ cd gitid
 Then install the dependencies:
 
 ```
-npm install
+yarn install
 ```
 
 Finally, build the code:
 
 ```
-npm run build
+yarn run build
 ```
 
 ---
