@@ -12,6 +12,9 @@ Here's how you can use the different commands of this CLI:
 
   ```
   npx gitid new <identity>
+  
+  # example:
+  npx gitid new personal
   ```
 
   Replace `<identity>` with the desired name for your new identity.
@@ -38,6 +41,9 @@ Here's how you can use the different commands of this CLI:
 
   ```
   npx gitid use <identity>
+
+  # example:
+  npx gitid use personal
   ```
 
   Replace `<identity>` with the name of the identity you want to use.
