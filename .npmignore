@@ -1,0 +1,7 @@
+/node_modules        # You don't need to publish your dependencies, npm handles this.  
+/src                 # In your case, you're compiling your TypeScript files in a different directory, so you don't need to publish the source.
+**/*.spec.ts         # Ignore any typescript test files too
+**/*.test.js         # Ignore any compiled javascript test files
+.gitignore           # No reason to include this in the package
+/package-lock.json   # It's generally a good practice to allow your users to handle their own dependency trees 
+README.md            # Usually you wouldn't ignore this, unless you have a different README for your source code and your npm package
