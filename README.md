@@ -8,7 +8,7 @@ Here's how you can use the different commands of this CLI:
 
 - **Create new identity:**
 
-  This will create a new SSH identity.
+  This will create a new `ed25519` SSH identity.
 
   ```
   npx gitid new <identity>
