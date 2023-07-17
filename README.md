@@ -19,7 +19,7 @@ Here's how you can use the different commands of this CLI:
   ```
   gitid new <identity>
 
-  # example:
+  # example
   gitid new personal
   ```
 
@@ -48,7 +48,7 @@ Here's how you can use the different commands of this CLI:
   ```
   gitid use <identity>
 
-  # example:
+  # example
   gitid use personal
   ```
 
