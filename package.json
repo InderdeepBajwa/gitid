@@ -1,6 +1,6 @@
 {
-  "name": "gitta",
-  "version": "0.1.0",
+  "name": "gitid",
+  "version": "0.1.1",
   "description": "Manage multiple git accounts easily",
   "main": "dist/index.js",
   "repository": "https://github.com/InderdeepBajwa/gitta",
