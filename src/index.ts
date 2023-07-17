@@ -11,6 +11,12 @@ switch (argument[0]) {
   case "status":
     cli.curentIdentity();
     break;
+  case "list":
+    cli.listIdentities();
+    break;
+  case "use":
+    cli.useIdentity(argument[1]);
+    break;
   default:
     console.log("Usage: gitta new <key-alias>");
 }
