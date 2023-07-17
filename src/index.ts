@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { CLI } from "./classes/cli";
 
 const cli = new CLI();
