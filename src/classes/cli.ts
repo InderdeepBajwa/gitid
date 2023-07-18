@@ -1,27 +1,81 @@
-import fs, { existsSync } from "fs";
+import fs from "fs";
 import os from "os";
 import { execSync } from "child_process";
 
-/*
- * CLI class
- *
- * This class is responsible for creating the SSH key and adding the host to the SSH config file.
- */
 export class CLI {
-  private sshConfigPath = `${os.homedir()}/.ssh/config`;
-  private sshKeyBasePath = `${os.homedir()}/.ssh/`;
+  private readonly sshConfigPath = `${os.homedir()}/.ssh/config`;
+  private readonly sshKeyBasePath = `${os.homedir()}/.ssh/`;
 
-  public newCommand(keyAlias: string) {
+  public createNewKey(keyAlias: string): void {
     this.createSSHKey(keyAlias);
 
-    if (fs.existsSync(this.sshConfigPath)) {
-      this.addHostToExistingConfig(keyAlias);
-    } else {
-      this.createNewConfigFile(keyAlias);
-    }
+    fs.existsSync(this.sshConfigPath)
+      ? this.addHostToConfig(keyAlias)
+      : this.createSSHConfigFile(keyAlias);
   }
 
-  private createSSHKey(keyAlias: string) {
+  public printCurrentIdentity() {
+    if (!this.isGitRepo()) {
+      console.error("This directory is not a git repository.");
+      return;
+    }
+
+    const gitRepoUrl = this.getGitRepoUrl();
+
+    const match = gitRepoUrl.match(/git@(.*):(.*)\/(.*).git/);
+
+    match && match[2]
+      ? console.log(`Current identity: ${match[2]}`)
+      : console.error(
+          "Could not find an established identity for this repository."
+        );
+  }
+
+  public listAllIdentities(): void {
+    if (!fs.existsSync(this.sshConfigPath)) {
+      console.error("SSH config file does not exist.");
+      return;
+    }
+
+    const data = fs.readFileSync(this.sshConfigPath, "utf8");
+    const identities = data.match(/Host (.*)\n/g);
+
+    identities && identities.length > 0
+      ? identities.map((identity: string) => {
+          console.log(`- ${identity.replace("Host ", "").replace("\n", "")}`);
+        })
+      : console.error("No identities found.");
+  }
+
+  public changeIdentity(identity: string): void {
+    if (!this.isGitRepo()) {
+      console.error("This directory is not a git repository.");
+      return;
+    }
+
+    if (!this.isIdentityAvaialble(identity)) {
+      console.error("Identity not available.");
+      return;
+    }
+
+    const originalRepoUrl = this.getGitRepoUrl();
+    const match = originalRepoUrl.match(/git@(.*):(.*)\/(.*).git/);
+
+    if (!match || !match[1] || !match[3]) {
+      console.error(
+        "Could not find an established identity for this repository."
+      );
+      return;
+    } else if (match[2] === identity) {
+      console.error("This identity is already in use.");
+      return;
+    }
+
+    const newRepoUrl = `git@${match[1]}:${identity}/${match[3]}.git`;
+    execSync(`git remote set-url origin ${newRepoUrl}`, { stdio: "inherit" });
+  }
+
+  private createSSHKey(keyAlias: string): void {
     try {
       execSync(
         `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${
@@ -38,7 +92,7 @@ export class CLI {
     }
   }
 
-  private addHostToExistingConfig(keyAlias: string) {
+  private addHostToConfig(keyAlias: string): void {
     const data = fs.readFileSync(this.sshConfigPath, "utf8");
 
     if (data.indexOf(keyAlias) > -1) {
@@ -59,7 +113,7 @@ export class CLI {
     }
   }
 
-  private createNewConfigFile(keyAlias: string) {
+  private createSSHConfigFile(keyAlias: string): void {
     const newHost =
       `Host ${keyAlias}\n` +
       `   HostName github.com\n` +
@@ -71,68 +125,7 @@ export class CLI {
     console.log("New Host added successfully.");
   }
 
-  public curentIdentity() {
-    try {
-      const isCurrentDirGitRepo =
-        execSync("git rev-parse --is-inside-work-tree", { stdio: "pipe" })
-          .toString()
-          .trim() === "true";
-
-      if (isCurrentDirGitRepo) {
-        const gitRepoUrl = execSync("git remote get-url origin", {
-          stdio: "pipe",
-        })
-          .toString()
-          .trim();
-        const regex = /git@(.*):(.*)\/(.*).git/;
-
-        const match = gitRepoUrl.match(regex);
-
-        if (match && match[2]) {
-          console.log(`Current identity: ${match[2]}`);
-        } else {
-          throw new Error(
-            "Could not find an established identity for this repository."
-          );
-        }
-      } else {
-        throw new Error("This directory is not a git repository.");
-      }
-    } catch (err) {
-      console.error(
-        "An error has occured while getting the current identity: ",
-        err
-      );
-    }
-  }
-
-  public listIdentities() {
-    try {
-      if (!existsSync(this.sshConfigPath)) {
-        throw new Error("SSH config file does not exist.");
-      }
-
-      const data = fs.readFileSync(this.sshConfigPath, "utf8");
-      const regex = /Host (.*)\n/g;
-      const identities = data.match(regex);
-
-      if (identities && identities.length > 0) {
-        console.log("Identities available:");
-        identities.map((identity: string) => {
-          console.log(`- ${identity.replace("Host ", "").replace("\n", "")}`);
-        });
-      } else {
-        throw new Error("No identities found.");
-      }
-    } catch (err) {
-      console.error(
-        "An error has occured while listing identities: ",
-        (err as any).message
-      );
-    }
-  }
-
-  private checkIfGitRepo() {
+  private isGitRepo(): boolean {
     try {
       return (
         execSync("git rev-parse --is-inside-work-tree", {
@@ -142,57 +135,24 @@ export class CLI {
           .toString()
           .trim() === "true"
       );
-    } catch (err) {
+    } catch {
       return false;
     }
   }
 
-  private identityAvaialble(identity: string) {
-    if (!existsSync(this.sshConfigPath)) {
+  private isIdentityAvaialble(identity: string): boolean {
+    if (!fs.existsSync(this.sshConfigPath)) {
       return false;
     }
 
     const data = fs.readFileSync(this.sshConfigPath, "utf8");
-    const regex = /Host (.*)\n/g;
-    return data.match(regex) !== null;
+    return data.includes(identity);
   }
 
-  public useIdentity(identity: string) {
-    try {
-      if (!this.checkIfGitRepo()) {
-        throw new Error("This directory is not a git repository.");
-      }
-
-      if (!this.identityAvaialble(identity)) {
-        throw new Error("Identity not available.");
-      }
-
-      const originalRepoUrl = execSync("git remote get-url origin", {
-        encoding: "utf-8",
-        stdio: "pipe",
-      });
-
-      const regex = /git@(.*):(.*)\/(.*).git/;
-
-      const match = originalRepoUrl.match(regex);
-
-      if (!match || !match[1] || !match[3]) {
-        throw new Error(
-          "Could not find an established identity for this repository."
-        );
-      } else if (match[2] === identity) {
-        throw new Error("This identity is already in use.");
-      }
-
-      const newRepoUrl = `git@${match[1]}:${identity}/${match[3]}.git`;
-      execSync(`git remote set-url origin ${newRepoUrl}`, { stdio: "inherit" });
-
-      console.log("Identity changed successfully.");
-    } catch (err) {
-      console.error(
-        "An error has occured while using identity: ",
-        (err as any).message
-      );
-    }
+  private getGitRepoUrl(): string {
+    return execSync("git remote get-url origin", {
+      encoding: "utf8",
+      stdio: "pipe",
+    }).toString();
   }
 }
