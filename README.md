@@ -2,6 +2,8 @@
 
 GitID is a convenient command-line interface (CLI) that allows you seamlessly manage and switch between multiple git SSH identities on a single user account.
 
+**Caution:** While this program works well, it is still work in progress. I recommend backing up your ~/.ssh directory before using this.
+
 ## Installation
 
 ```
