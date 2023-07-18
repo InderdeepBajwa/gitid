@@ -58,6 +58,11 @@ Here's how you can use the different commands of this CLI:
 
   Replace `<identity>` with the name of the identity you want to use.
 
+## TODO
+
+[] Option to set user.name and user.email in an identity
+[] Optionally exclude user.name and user.email settings from an identity
+
 ## Do I need GitID?
 
 GitID is your solution if you are:
