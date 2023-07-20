@@ -62,8 +62,8 @@ Here's how you can use the different commands of this CLI:
 
 ## TODO
 
-[] Option to set user.name and user.email in an identity
-[] Optionally exclude user.name and user.email settings from an identity
+[ ] Option to set user.name and user.email in an identity
+[ ] Optionally exclude user.name and user.email settings from an identity
 
 ## Do I need GitID?
 
@@ -102,6 +102,6 @@ This CLI is meant for managing SSH identities on a single machine, the identity 
 
 ## License
 
-MIT
+[MIT](LICENSE)
 
 ---
