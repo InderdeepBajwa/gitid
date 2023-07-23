@@ -2,23 +2,31 @@
 
 import { CLI } from "./classes/cli";
 
+const COMMAND_LOCATION = 2;
+const OPTION_LOCATION = 3;
+const NEW_COMMAND = "new";
+const STATUS_COMMAND = "status";
+const LIST_COMMAND = "list";
+const USE_COMMAND = "use";
+
 const cli = new CLI();
 
-const [command, option] = process.argv.slice(2);
+const command = process.argv[COMMAND_LOCATION] || "";
+const option = process.argv[OPTION_LOCATION] || "";
 
 switch (command) {
-  case "new":
+  case NEW_COMMAND:
     cli.createNewKey(option);
     break;
-  case "status":
+  case STATUS_COMMAND:
     cli.printCurrentIdentity();
     break;
-  case "list":
+  case LIST_COMMAND:
     cli.listAllIdentities();
     break;
-  case "use":
+  case USE_COMMAND:
     cli.changeIdentity(option);
     break;
   default:
-    console.log("Usage: gitta new <key-alias>");
+    console.log("Usage: gitid new <key-alias>");
 }

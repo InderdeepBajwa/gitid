@@ -2,16 +2,27 @@ import fs from "fs";
 import os from "os";
 import { execSync } from "child_process";
 
+const SSH_CONFIG_FILE_PATH = `${os.homedir()}/.ssh/config`;
+const SSH_KEY_BASE_PATH = `${os.homedir()}/.ssh/`;
+
 export class CLI {
-  private readonly sshConfigPath = `${os.homedir()}/.ssh/config`;
-  private readonly sshKeyBasePath = `${os.homedir()}/.ssh/`;
+  public async createNewKey(keyAlias: string) {
+    try {
+      await this.createSSHKey(keyAlias);
 
-  public createNewKey(keyAlias: string): void {
-    this.createSSHKey(keyAlias);
-
-    fs.existsSync(this.sshConfigPath)
-      ? this.addHostToConfig(keyAlias)
-      : this.createSSHConfigFile(keyAlias);
+      fs.existsSync(SSH_CONFIG_FILE_PATH)
+        ? this.addHostToConfig(keyAlias)
+        : this.createSSHConfigFile(keyAlias);
+    } catch (error: any) {
+      if (error instanceof Error) {
+        console.error(
+          "An error occurred while creating a new key:",
+          error.message
+        );
+      } else {
+        console.error(error);
+      }
+    }
   }
 
   public printCurrentIdentity() {
@@ -32,12 +43,12 @@ export class CLI {
   }
 
   public listAllIdentities(): void {
-    if (!fs.existsSync(this.sshConfigPath)) {
+    if (!fs.existsSync(SSH_CONFIG_FILE_PATH)) {
       console.error("SSH config file does not exist.");
       return;
     }
 
-    const data = fs.readFileSync(this.sshConfigPath, "utf8");
+    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
     const identities = data.match(/Host (.*)\n/g);
 
     identities && identities.length > 0
@@ -78,9 +89,7 @@ export class CLI {
   private createSSHKey(keyAlias: string): void {
     try {
       execSync(
-        `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${
-          this.sshKeyBasePath
-        }/gitta_${keyAlias}"`,
+        `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${SSH_KEY_BASE_PATH}/gitta_${keyAlias}"`,
         { stdio: "inherit" }
       );
       console.log("SSH key created successfully.");
@@ -92,25 +101,30 @@ export class CLI {
     }
   }
 
-  private addHostToConfig(keyAlias: string): void {
-    const data = fs.readFileSync(this.sshConfigPath, "utf8");
+  private async addHostToConfig(keyAlias: string) {
+    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
 
     if (data.indexOf(keyAlias) > -1) {
       console.error(
-        "A host name already exists with the same name. \
-        Please try removing it or try a different name."
+        `A host name already exists with the same name. ${keyAlias}. \
+          Please try removing it or try a different name.`
       );
     } else {
-      const newHost =
-        `Host ${keyAlias}\n` +
-        `   HostName github.com\n` +
-        `   User git\n` +
-        `   IdentityFile ${this.sshKeyBasePath}_${keyAlias}\n` +
-        `   IdentitiesOnly yes\n`;
-
-      fs.appendFileSync(this.sshConfigPath, newHost);
-      console.log("New host added successfully.");
+      const newHost = this.buildHostString(keyAlias);
+      await fs.appendFileSync(SSH_CONFIG_FILE_PATH, newHost);
+      console.log(`New host '${keyAlias}' added successfully.`);
     }
+  }
+
+  private buildHostString(keyAlias: string): string {
+    return (
+      "\n" +
+      `Host ${keyAlias}\n` +
+      `   HostName github.com\n` +
+      `   User git\n` +
+      `   IdentityFile ${SSH_KEY_BASE_PATH}gitta_${keyAlias}\n` +
+      `   IdentitiesOnly yes\n`
+    );
   }
 
   private createSSHConfigFile(keyAlias: string): void {
@@ -118,10 +132,10 @@ export class CLI {
       `Host ${keyAlias}\n` +
       `   HostName github.com\n` +
       `   User git\n` +
-      `   IdentityFile ${this.sshKeyBasePath}_${keyAlias}\n` +
+      `   IdentityFile ${SSH_CONFIG_FILE_PATH}_${keyAlias}\n` +
       `   IdentitiesOnly yes\n`;
 
-    fs.writeFileSync(this.sshConfigPath, newHost);
+    fs.writeFileSync(SSH_CONFIG_FILE_PATH, newHost);
     console.log("New Host added successfully.");
   }
 
@@ -141,11 +155,11 @@ export class CLI {
   }
 
   private isIdentityAvaialble(identity: string): boolean {
-    if (!fs.existsSync(this.sshConfigPath)) {
+    if (!fs.existsSync(SSH_CONFIG_FILE_PATH)) {
       return false;
     }
 
-    const data = fs.readFileSync(this.sshConfigPath, "utf8");
+    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
     return data.includes(identity);
   }
 
