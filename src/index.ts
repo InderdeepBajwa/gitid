@@ -15,14 +15,15 @@ const option = process.argv[indices.OPTION_INDEX] || "";
 const commandsMap: {
   [key: string]: (arg?: string) => void | Promise<void>;
 } = {
-  new: cli.createNewKey,
-  status: cli.printCurrentIdentity,
-  list: cli.listAllIdentities,
-  use: cli.changeIdentity,
+  new: cli.createNewKey.bind(cli),
+  status: cli.printCurrentIdentity.bind(cli),
+  list: cli.listAllIdentities.bind(cli),
+  current: cli.printCurrentIdentity.bind(cli),
+  use: cli.changeIdentity.bind(cli),
 };
 
 commandsMap[command]
   ? commandsMap[command](option)
   : console.log(
-      "Usage: gitid <command> <option>, where <command> can be [new, status, list, use]"
+      "Usage: gitid <command> <option>, where <command> can be [new, status, list, current, use]"
     );

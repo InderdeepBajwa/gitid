@@ -28,7 +28,7 @@ export class CLI {
 
   public printCurrentIdentity() {
     if (!this.isGitRepo()) {
-      console.error("This directory is not a git repository.");
+      console.error("Current directory is not a git repository.");
       return;
     }
 
@@ -66,7 +66,7 @@ export class CLI {
     }
 
     if (!this.isIdentityAvaialble(identity)) {
-      console.error("Identity not available.");
+      console.error(`Requested identity '${identity}' is not available.`);
       return;
     }
 
@@ -79,15 +79,16 @@ export class CLI {
       );
       return;
     } else if (match[2] === identity) {
-      console.error("This identity is already in use.");
+      console.error(`Identity '${identity}' is already in use.`);
       return;
     }
 
     const newRepoUrl = `git@${match[1]}:${identity}/${match[3]}.git`;
     execSync(`git remote set-url origin ${newRepoUrl}`, { stdio: "inherit" });
+    console.log(`Identity changed to '${identity}' successfully.`);
   }
 
-  private createSSHKey(keyAlias: string): void {
+  private async createSSHKey(keyAlias: string) {
     try {
       execSync(
         `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${SSH_FOLDER_PATH}/gitid_${keyAlias}"`,
@@ -129,12 +130,7 @@ export class CLI {
   }
 
   private createSSHConfigFile(keyAlias: string): void {
-    const newHost =
-      `Host ${keyAlias}\n` +
-      `   HostName github.com\n` +
-      `   User git\n` +
-      `   IdentityFile ${SSH_CONFIG_FILE_PATH}gitid_${keyAlias}\n` +
-      `   IdentitiesOnly yes\n`;
+    const newHost = this.buildHostString(keyAlias);
 
     fs.writeFileSync(SSH_CONFIG_FILE_PATH, newHost);
     console.log("New Host added successfully.");
@@ -161,7 +157,7 @@ export class CLI {
     }
 
     const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
-    return data.split("\n").includes(identity);
+    return data.includes(identity);
   }
 
   private getGitRepoUrl(): string {
