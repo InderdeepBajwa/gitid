@@ -2,31 +2,27 @@
 
 import { CLI } from "./classes/cli";
 
-const COMMAND_LOCATION = 2;
-const OPTION_LOCATION = 3;
-const NEW_COMMAND = "new";
-const STATUS_COMMAND = "status";
-const LIST_COMMAND = "list";
-const USE_COMMAND = "use";
-
 const cli = new CLI();
 
-const command = process.argv[COMMAND_LOCATION] || "";
-const option = process.argv[OPTION_LOCATION] || "";
+const indices = {
+  COMMAND_INDEX: 2,
+  OPTION_INDEX: 3,
+};
 
-switch (command) {
-  case NEW_COMMAND:
-    cli.createNewKey(option);
-    break;
-  case STATUS_COMMAND:
-    cli.printCurrentIdentity();
-    break;
-  case LIST_COMMAND:
-    cli.listAllIdentities();
-    break;
-  case USE_COMMAND:
-    cli.changeIdentity(option);
-    break;
-  default:
-    console.log("Usage: gitid new <key-alias>");
-}
+const command = process.argv[indices.COMMAND_INDEX] || "";
+const option = process.argv[indices.OPTION_INDEX] || "";
+
+const commandsMap: {
+  [key: string]: (arg?: string) => void | Promise<void>;
+} = {
+  new: cli.createNewKey,
+  status: cli.printCurrentIdentity,
+  list: cli.listAllIdentities,
+  use: cli.changeIdentity,
+};
+
+commandsMap[command]
+  ? commandsMap[command](option)
+  : console.log(
+      "Usage: gitid <command> <option>, where <command> can be [new, status, list, use]"
+    );
