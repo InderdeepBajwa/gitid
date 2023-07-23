@@ -2,11 +2,12 @@ import fs from "fs";
 import os from "os";
 import { execSync } from "child_process";
 
-const SSH_CONFIG_FILE_PATH = `${os.homedir()}/.ssh/config`;
-const SSH_KEY_BASE_PATH = `${os.homedir()}/.ssh/`;
+const SSH_FOLDER_PATH = `${os.homedir()}/.ssh`;
+const SSH_CONFIG_FILE_PATH = `${SSH_FOLDER_PATH}/config`;
+const GIT_REGEX = /git@(.*):(.*)\/(.*).git/;
 
 export class CLI {
-  public async createNewKey(keyAlias: string) {
+  public async createNewKey(keyAlias: string = "") {
     try {
       await this.createSSHKey(keyAlias);
 
@@ -33,7 +34,7 @@ export class CLI {
 
     const gitRepoUrl = this.getGitRepoUrl();
 
-    const match = gitRepoUrl.match(/git@(.*):(.*)\/(.*).git/);
+    const match = gitRepoUrl.match(GIT_REGEX);
 
     match && match[2]
       ? console.log(`Current identity: ${match[2]}`)
@@ -58,7 +59,7 @@ export class CLI {
       : console.error("No identities found.");
   }
 
-  public changeIdentity(identity: string): void {
+  public changeIdentity(identity: string = ""): void {
     if (!this.isGitRepo()) {
       console.error("This directory is not a git repository.");
       return;
@@ -70,7 +71,7 @@ export class CLI {
     }
 
     const originalRepoUrl = this.getGitRepoUrl();
-    const match = originalRepoUrl.match(/git@(.*):(.*)\/(.*).git/);
+    const match = originalRepoUrl.match(GIT_REGEX);
 
     if (!match || !match[1] || !match[3]) {
       console.error(
@@ -89,7 +90,7 @@ export class CLI {
   private createSSHKey(keyAlias: string): void {
     try {
       execSync(
-        `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${SSH_KEY_BASE_PATH}/gitid_${keyAlias}"`,
+        `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${SSH_FOLDER_PATH}/gitid_${keyAlias}"`,
         { stdio: "inherit" }
       );
       console.log("SSH key created successfully.");
@@ -122,7 +123,7 @@ export class CLI {
       `Host ${keyAlias}\n` +
       `   HostName github.com\n` +
       `   User git\n` +
-      `   IdentityFile ${SSH_KEY_BASE_PATH}gitid_${keyAlias}\n` +
+      `   IdentityFile ${SSH_FOLDER_PATH}gitid_${keyAlias}\n` +
       `   IdentitiesOnly yes\n`
     );
   }
@@ -160,7 +161,7 @@ export class CLI {
     }
 
     const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
-    return data.includes(identity);
+    return data.split("\n").includes(identity);
   }
 
   private getGitRepoUrl(): string {
