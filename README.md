@@ -2,6 +2,8 @@
 
 GitID is a convenient command-line interface (CLI) that allows you seamlessly manage and switch between multiple git SSH identities on a single user account.
 
+**Caution:** While this program works well, it is still work in progress. I recommend backing up your ~/.ssh directory before using this.
+
 ## Installation
 
 ```
@@ -58,6 +60,11 @@ Here's how you can use the different commands of this CLI:
 
   Replace `<identity>` with the name of the identity you want to use.
 
+## TODO
+
+[ ] Option to set user.name and user.email in an identity
+[ ] Optionally exclude user.name and user.email settings from an identity
+
 ## Do I need GitID?
 
 GitID is your solution if you are:
@@ -95,6 +102,6 @@ This CLI is meant for managing SSH identities on a single machine, the identity 
 
 ## License
 
-MIT
+[MIT](LICENSE)
 
 ---
