@@ -22,7 +22,7 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "yarn prepare-commit-msg"
+      "prepare-commit-msg": "exec < /dev/tty  && yarn prepare-commit-msg"
     }
   },
   "devDependencies": {
