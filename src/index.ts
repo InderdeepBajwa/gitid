@@ -27,3 +27,5 @@ commandsMap[command]
   : console.log(
       "Usage: gitid <command> <option>, where <command> can be [new, status, list, current, use]"
     );
+
+console.log("test");
