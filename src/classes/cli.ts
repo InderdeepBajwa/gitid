@@ -89,7 +89,7 @@ export class CLI {
   private createSSHKey(keyAlias: string): void {
     try {
       execSync(
-        `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${SSH_KEY_BASE_PATH}/gitta_${keyAlias}"`,
+        `ssh-keygen -t ed25519 -C "${os.hostname()}" -f "${SSH_KEY_BASE_PATH}/gitid_${keyAlias}"`,
         { stdio: "inherit" }
       );
       console.log("SSH key created successfully.");
@@ -122,7 +122,7 @@ export class CLI {
       `Host ${keyAlias}\n` +
       `   HostName github.com\n` +
       `   User git\n` +
-      `   IdentityFile ${SSH_KEY_BASE_PATH}gitta_${keyAlias}\n` +
+      `   IdentityFile ${SSH_KEY_BASE_PATH}gitid_${keyAlias}\n` +
       `   IdentitiesOnly yes\n`
     );
   }
@@ -132,7 +132,7 @@ export class CLI {
       `Host ${keyAlias}\n` +
       `   HostName github.com\n` +
       `   User git\n` +
-      `   IdentityFile ${SSH_CONFIG_FILE_PATH}_${keyAlias}\n` +
+      `   IdentityFile ${SSH_CONFIG_FILE_PATH}gitid_${keyAlias}\n` +
       `   IdentitiesOnly yes\n`;
 
     fs.writeFileSync(SSH_CONFIG_FILE_PATH, newHost);
