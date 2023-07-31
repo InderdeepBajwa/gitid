@@ -60,9 +60,27 @@ Here's how you can use the different commands of this CLI:
 
   Replace `<identity>` with the name of the identity you want to use.
 
+- **Show public key:**
+
+  This command fetches and displays the public key of a specified identity.
+  
+  ```
+  gitid show <identity>
+  ```
+  
+  ```
+  # example
+  gitid show personal
+  ```
+  
+  Replace `<identity>` with the name of the identity you want to show the public key for. 
+  
+  This command reads the SSH config file, extracts the path of the corresponding `IdentityFile` for the specified identity, and then reads and prints the contents of the file. If the identity or the key file is not found, it will print an appropriate error message. 
+
 ## TODO
 
 [ ] Option to set user.name and user.email in an identity
+
 [ ] Optionally exclude user.name and user.email settings from an identity
 
 ## Do I need GitID?
