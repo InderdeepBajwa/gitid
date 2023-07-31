@@ -36,8 +36,8 @@ export class CLI {
 
     const match = gitRepoUrl.match(GIT_REGEX);
 
-    match && match[2]
-      ? console.log(`Current identity: ${match[2]}`)
+    match && match[1]
+      ? console.log(`Current identity: ${match[1]}`)
       : console.error(
           "Could not find an established identity for this repository."
         );
@@ -78,12 +78,12 @@ export class CLI {
         "Could not find an established identity for this repository."
       );
       return;
-    } else if (match[2] === identity) {
+    } else if (match[1] === identity) {
       console.error(`Identity '${identity}' is already in use.`);
       return;
     }
 
-    const newRepoUrl = `git@${match[1]}:${identity}/${match[3]}.git`;
+    const newRepoUrl = `git@${identity}:${match[2]}/${match[3]}.git`;
     execSync(`git remote set-url origin ${newRepoUrl}`, { stdio: "inherit" });
     console.log(`Identity changed to '${identity}' successfully.`);
   }
