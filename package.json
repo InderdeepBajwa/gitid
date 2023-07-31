@@ -1,6 +1,6 @@
 {
   "name": "gitid",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Manage multiple git accounts easily",
   "main": "dist/index.js",
   "repository": "https://github.com/InderdeepBajwa/gitid",

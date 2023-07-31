@@ -94,24 +94,34 @@ export class CLI {
       return;
     }
 
-    // Path for gitid_<identity>.pub or <identity>.pub
-    const publicKeyPathGitid = `${SSH_FOLDER_PATH}/gitid_${identity}.pub`;
-    const publicKeyPathDefault = `${SSH_FOLDER_PATH}/${identity}.pub`;
-    let keyFilePath = null;
-
-    if (fs.existsSync(publicKeyPathGitid)) {
-      keyFilePath = publicKeyPathGitid;
-    } else if (fs.existsSync(publicKeyPathDefault)) {
-      keyFilePath = publicKeyPathDefault;
-    } else {
-      console.error(
-        `Could not find public key for identity '${identity}'. Please make sure the key exists.`
-      );
+    if (!fs.existsSync(SSH_CONFIG_FILE_PATH)) {
+      console.error("SSH config file does not exist.");
       return;
     }
 
-    const publicKey = fs.readFileSync(keyFilePath, "utf8");
-    console.log(publicKey);
+    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
+
+    const hosts = data.split("Host ");
+    const host = hosts.find((host) => host.startsWith(identity));
+
+    if (!host) {
+      console.error(`Requested identity '${identity}' is not available.`);
+      return;
+    }
+
+    const identityFileMatch = host.match(/IdentityFile (.*)\n/);
+
+    if (identityFileMatch && identityFileMatch[1]) {
+      const identityFilePath = identityFileMatch[1].trim();
+      const publicKeyPath = `${identityFilePath}.pub`;
+
+      if (fs.existsSync(publicKeyPath)) {
+        const publicKey = fs.readFileSync(publicKeyPath, "utf8");
+        console.log(publicKey);
+      } else {
+        console.error("Could not find public key.");
+      }
+    }
   }
 
   private async createSSHKey(keyAlias: string) {
@@ -150,7 +160,7 @@ export class CLI {
       `Host ${keyAlias}\n` +
       `   HostName github.com\n` +
       `   User git\n` +
-      `   IdentityFile ${SSH_FOLDER_PATH}gitid_${keyAlias}\n` +
+      `   IdentityFile ${SSH_FOLDER_PATH}/gitid_${keyAlias}\n` +
       `   IdentitiesOnly yes\n`
     );
   }
