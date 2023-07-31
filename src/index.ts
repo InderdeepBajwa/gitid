@@ -20,6 +20,7 @@ const commandsMap: {
   list: cli.listAllIdentities.bind(cli),
   current: cli.printCurrentIdentity.bind(cli),
   use: cli.changeIdentity.bind(cli),
+  show: cli.showPublicKey.bind(cli),
 };
 
 commandsMap[command]
