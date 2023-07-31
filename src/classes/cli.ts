@@ -88,6 +88,32 @@ export class CLI {
     console.log(`Identity changed to '${identity}' successfully.`);
   }
 
+  public showPublicKey(identity: string = ""): void {
+    if (!this.isIdentityAvaialble(identity)) {
+      console.error(`Requested identity '${identity}' is not available.`);
+      return;
+    }
+
+    // Path for gitid_<identity>.pub or <identity>.pub
+    const publicKeyPathGitid = `${SSH_FOLDER_PATH}/gitid_${identity}.pub`;
+    const publicKeyPathDefault = `${SSH_FOLDER_PATH}/${identity}.pub`;
+    let keyFilePath = null;
+
+    if (fs.existsSync(publicKeyPathGitid)) {
+      keyFilePath = publicKeyPathGitid;
+    } else if (fs.existsSync(publicKeyPathDefault)) {
+      keyFilePath = publicKeyPathDefault;
+    } else {
+      console.error(
+        `Could not find public key for identity '${identity}'. Please make sure the key exists.`
+      );
+      return;
+    }
+
+    const publicKey = fs.readFileSync(keyFilePath, "utf8");
+    console.log(publicKey);
+  }
+
   private async createSSHKey(keyAlias: string) {
     try {
       execSync(
