@@ -112,8 +112,12 @@ export class CLI {
     const identityFileMatch = host.match(/IdentityFile (.*)\n/);
 
     if (identityFileMatch && identityFileMatch[1]) {
-      const identityFilePath = identityFileMatch[1].trim();
-      const publicKeyPath = `${identityFilePath}.pub`;
+      let publicKeyPath = identityFileMatch[1].trim();
+
+      publicKeyPath = publicKeyPath.replace("~", os.homedir());
+      if (!publicKeyPath.endsWith(".pub")) {
+        publicKeyPath += ".pub";
+      }
 
       if (fs.existsSync(publicKeyPath)) {
         const publicKey = fs.readFileSync(publicKeyPath, "utf8");
