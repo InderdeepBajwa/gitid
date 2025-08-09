@@ -1,125 +1,59 @@
-# GitID - Manage Multiple Git Identities Easily
+## GitID — Multi-provider Git SSH identity manager
 
-GitID is a convenient command-line interface (CLI) that allows you seamlessly manage and switch between multiple git SSH identities on a single user account.
+GitID is a zero-friction CLI to create and switch between multiple SSH identities and use them per-repository. It works with any Git provider: GitHub, GitLab, Bitbucket, and custom/self-hosted domains.
 
-**Caution:** While this program works well, it is still work in progress. I recommend backing up your ~/.ssh directory before using this.
+Back up your `~/.ssh` directory before first use.
 
-## Installation
+### Install
 
-```
-npm install -g gitid
-```
-
-## Usage
-
-Here's how you can use the different commands of this CLI:
-
-- **Create new identity:**
-
-  This will create a new `ed25519` SSH identity.
-
-  ```
-  gitid new <identity>
-  ```
-
-  ```
-  # example
-  gitid new personal
-  ```
-
-  Replace `<identity>` with the desired name for your new identity.
-
-- **List identities:**
-
-  This will list all available identities.
-
-  ```
-  gitid list
-  ```
-
-- **Check current identity:**
-
-  This will output the current identity.
-
-  ```
-  gitid current
-  ```
-
-- **Use identity:**
-
-  This will change the Git identity for the repository in the current directory to a specified identity.
-
-  ```
-  gitid use <identity>
-  ```
-
-  ```
-  # example
-  gitid use personal
-  ```
-
-  Replace `<identity>` with the name of the identity you want to use.
-
-- **Show public key:**
-
-  This command fetches and displays the public key of a specified identity.
-  
-  ```
-  gitid show <identity>
-  ```
-  
-  ```
-  # example
-  gitid show personal
-  ```
-  
-  Replace `<identity>` with the name of the identity you want to show the public key for. 
-  
-  This command reads the SSH config file, extracts the path of the corresponding `IdentityFile` for the specified identity, and then reads and prints the contents of the file. If the identity or the key file is not found, it will print an appropriate error message. 
-
-## TODO
-
-[ ] Option to set user.name and user.email in an identity
-
-[ ] Optionally exclude user.name and user.email settings from an identity
-
-## Do I need GitID?
-
-GitID is your solution if you are:
-
-- Having a hard time managing multiple Git identity files on a single user account
-- Struggling with permission issues when accidentally pushing from a wrong identity file
-- Tired of having to modify git URLs every time you clone or add a new remote
-
-## Manual Installation and Contribution
-
-First, clone the repository:
-
-```
-git clone https://github.com/inderdeepbajwa/gitid.git
-cd gitid
+```bash
+npm i -g gitid
 ```
 
-Then install the dependencies:
+### Publish (maintainers)
 
+- Push a tag like `v1.0.0` to `main` to trigger publish, or run the workflow manually with a version input.
+- Add `NPM_TOKEN` secret in the repository with publish rights for [`gitid`](https://www.npmjs.com/package/gitid).
+
+### Quick start
+
+```bash
+# create an identity alias for GitHub
+gitid new personal --host github.com --email me@example.com --name "My Name"
+
+# print public key to add on provider
+gitid show personal
+
+# in a repo, switch to this identity
+gitid use personal
 ```
-yarn install
-```
 
-Finally, build the code:
+### Commands
 
-```
-yarn run build
-```
+- `gitid new <alias> [--host <host>] [--type ed25519|rsa] [--passphrase <pass>] [--name <git user.name>] [--email <git user.email>]`
+- `gitid list`
+- `gitid show <alias>`
+- `gitid current [--remote origin]`
+- `gitid use <alias> [--remote origin]`
+- `gitid remove <alias> [--delete-keys]`
+- `gitid rename <old> <new>`
 
----
+Identities are stored as:
+- SSH keys in `~/.ssh/gitid/<alias>` and `~/.ssh/gitid/<alias>.pub`
+- SSH config blocks wrapped with safe markers in `~/.ssh/config`
+- Metadata in `~/.config/gitid/identities.json`
 
-## Note
+### How it works
 
-This CLI is meant for managing SSH identities on a single machine, the identity names you use are local to your machine and do not have to correspond to your actual GitHub username.
+- Creates SSH keys per alias and adds a `Host <alias>` block that points to your provider host.
+- When you `use <alias>`, your repo remote becomes `git@<alias>:owner/repo.git`, letting SSH choose the right key.
+- Optionally sets per-repo `user.name` and `user.email` when switching.
 
-## License
+### Notes
 
-[MIT](LICENSE)
+- Works with any host: e.g. `--host gitlab.com`, `--host bitbucket.org`, or custom domains like `git.company.com`.
+- You can safely edit `~/.ssh/config`; GitID only manages blocks between markers.
 
----
+### License
+
+MIT
