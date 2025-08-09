@@ -395,6 +395,60 @@ export async function run() {
       }
     });
 
+  program
+    .command("config")
+    .argument("alias", "identity alias to update")
+    .option("--name <gitUserName>", "set git user.name for this identity")
+    .option("--email <gitUserEmail>", "set git user.email for this identity")
+    .option("--clear-name", "clear git user.name for this identity", false)
+    .option("--clear-email", "clear git user.email for this identity", false)
+    .description("Update metadata (git name/email) attached to an identity")
+    .action((alias: string, options: { name?: string; email?: string; clearName?: boolean; clearEmail?: boolean }) => {
+      const records = readIdentities();
+      const rec = records.find((r) => r.alias === alias);
+      if (!rec) {
+        console.error(`Identity '${alias}' does not exist.`);
+        process.exitCode = 1;
+        return;
+      }
+      if (!options.clearName && !options.clearEmail && !options.name && !options.email) {
+        console.log(`Current settings for '${alias}': name=${rec.gitUserName ?? "<unset>"}, email=${rec.gitUserEmail ?? "<unset>"}`);
+        return;
+      }
+      if (options.clearName) delete rec.gitUserName;
+      if (options.clearEmail) delete rec.gitUserEmail;
+      if (typeof options.name === "string") rec.gitUserName = options.name;
+      if (typeof options.email === "string") rec.gitUserEmail = options.email;
+      writeIdentities(records);
+      console.log(`Updated '${alias}': name=${rec.gitUserName ?? "<unset>"}, email=${rec.gitUserEmail ?? "<unset>"}`);
+    });
+
+  program
+    .command("apply")
+    .argument("alias", "identity alias whose git name/email will be applied to this repo")
+    .description("Apply the stored git user.name and user.email for an identity to the current repository")
+    .action((alias: string) => {
+      try {
+        assertGitRepo();
+        const rec = readIdentities().find((r) => r.alias === alias);
+        if (!rec) {
+          console.error(`Identity '${alias}' does not exist.`);
+          process.exitCode = 1;
+          return;
+        }
+        if (!rec.gitUserEmail && !rec.gitUserName) {
+          console.error(`Identity '${alias}' has no git name/email configured.`);
+          process.exitCode = 1;
+          return;
+        }
+        updateGitConfigForRepo({ name: rec.gitUserName, email: rec.gitUserEmail });
+        console.log(`Applied git config for '${alias}'.`);
+      } catch (err: any) {
+        console.error(err?.message ?? String(err));
+        process.exitCode = 1;
+      }
+    });
+
   await program.parseAsync(process.argv);
 }
 

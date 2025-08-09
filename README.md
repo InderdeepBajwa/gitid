@@ -37,6 +37,8 @@ gitid use personal
 - `gitid use <alias> [--remote origin]`
 - `gitid remove <alias> [--delete-keys]`
 - `gitid rename <old> <new>`
+- `gitid config <alias> [--name <user>] [--email <addr>] [--clear-name] [--clear-email]`
+- `gitid apply <alias>`
 
 Identities are stored as:
 - SSH keys in `~/.ssh/gitid/<alias>` and `~/.ssh/gitid/<alias>.pub`
@@ -48,6 +50,7 @@ Identities are stored as:
 - Creates SSH keys per alias and adds a `Host <alias>` block that points to your provider host.
 - When you `use <alias>`, your repo remote becomes `git@<alias>:owner/repo.git`, letting SSH choose the right key.
 - Optionally sets per-repo `user.name` and `user.email` when switching.
+  - You can also manage them separately via `gitid config` and apply with `gitid apply`.
 
 ### Notes
 
