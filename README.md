@@ -26,6 +26,10 @@ gitid show personal
 
 # in a repo, switch to this identity
 gitid use personal
+ 
+# clone a repo using this identity (rewrites URL to git@personal:owner/repo.git)
+gitid clone personal https://github.com/owner/repo.git
+gitid clone personal owner/repo my-local-dir
 ```
 
 ### Commands
@@ -35,6 +39,7 @@ gitid use personal
 - `gitid show <alias>`
 - `gitid current [--remote origin]`
 - `gitid use <alias> [--remote origin]`
+- `gitid clone <alias> <repo> [directory]`
 - `gitid remove <alias> [--delete-keys]`
 - `gitid rename <old> <new>`
 - `gitid config <alias> [--name <user>] [--email <addr>] [--clear-name] [--clear-email]`

@@ -314,6 +314,57 @@ export async function run() {
     });
 
   program
+    .command("clone")
+    .argument("alias", "identity alias to use for cloning")
+    .argument("repo", "repository URL (ssh/https) or 'owner/repo'")
+    .argument("[directory]", "optional destination directory")
+    .description("Clone a repository using the identity alias (rewrites to git@<alias>:owner/repo.git)")
+    .action((alias: string, repo: string, directory?: string) => {
+      if (!identityExists(alias)) {
+        console.error(`Identity '${alias}' does not exist.`);
+        process.exitCode = 1;
+        return;
+      }
+      try {
+        // Determine the repo path portion like owner/repo or group/sub/repo
+        const parsed = parseRemote(repo);
+        let repoPath: string | undefined;
+        if (parsed.type === "ssh" || parsed.type === "https") {
+          repoPath = parsed.path.replace(/\.git$/, "");
+        } else {
+          // Support shorthand like owner/repo or group/subgroup/repo (.git optional)
+          const shorthand = repo.match(/^[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)+(?:\.git)?$/);
+          if (shorthand) {
+            repoPath = repo.replace(/\.git$/, "");
+          }
+        }
+        if (!repoPath) {
+          console.error("Unsupported repository format. Provide an https/ssh URL or 'owner/repo'.");
+          process.exitCode = 1;
+          return;
+        }
+
+        const newUrl = `git@${alias}:${repoPath}.git`;
+        const repoBaseName = repoPath.split("/").pop() || "repo";
+        const destDir = directory ?? repoBaseName;
+
+        // Clone with rewritten URL
+        execSync(`git clone ${shellEscape(newUrl)} ${shellEscape(destDir)}`, { stdio: "inherit" });
+
+        // Apply identity's git config to the freshly cloned repo, if configured
+        const rec = readIdentities().find((r) => r.alias === alias);
+        if (rec && (rec.gitUserEmail || rec.gitUserName)) {
+          if (rec.gitUserName) execSync(`git -C ${shellEscape(destDir)} config user.name ${shellEscape(rec.gitUserName)}`, { stdio: "inherit" });
+          if (rec.gitUserEmail) execSync(`git -C ${shellEscape(destDir)} config user.email ${shellEscape(rec.gitUserEmail)}`, { stdio: "inherit" });
+        }
+        console.log(`Cloned using identity '${alias}': ${newUrl}`);
+      } catch (err: any) {
+        console.error(err?.message ?? String(err));
+        process.exitCode = 1;
+      }
+    });
+
+  program
     .command("remove")
     .argument("alias", "identity alias to remove")
     .option("--delete-keys", "also delete private/public key files", false)
