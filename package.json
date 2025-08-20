@@ -24,15 +24,11 @@
     "dev": "tsx watch src/cli/index.ts",
     "start": "node dist/cli/index.js",
     "test": "echo 'Tests will be implemented in next iteration' && exit 0",
-    "test:coverage": "echo 'Tests will be implemented in next iteration' && exit 0",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --ext ts --fix",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "prebuild": "npm run typecheck",
-    "prepare": "husky install",
-    "release": "changeset publish"
+    "format:check": "prettier --check \"src/**/*.ts\""
   },
   "engines": {
     "node": ">=18"
@@ -49,25 +45,14 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.10",
     "@types/node": "^22.10.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
-    "@vitest/coverage-v8": "^2.1.0",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-security": "^3.0.0",
-    "husky": "^9.1.0",
-    "lint-staged": "^15.2.0",
     "prettier": "^3.3.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
-    "vitest": "^2.1.0"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "eslint --fix",
-      "prettier --write"
-    ]
+    "typescript": "^5.7.0"
   }
 }

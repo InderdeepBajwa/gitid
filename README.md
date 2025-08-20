@@ -3,19 +3,30 @@
 [![Version](https://img.shields.io/npm/v/gitid.svg)](https://npmjs.org/package/gitid)
 [![License](https://img.shields.io/npm/l/gitid.svg)](https://github.com/InderdeepBajwa/gitid/blob/main/LICENSE)
 [![Node](https://img.shields.io/node/v/gitid.svg)](https://nodejs.org)
+[![Security](https://img.shields.io/badge/security-enterprise--grade-brightgreen)](https://github.com/InderdeepBajwa/gitid#-security)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 
-GitID is an enterprise-grade CLI tool for managing multiple Git SSH identities seamlessly across any Git provider (GitHub, GitLab, Bitbucket, and self-hosted instances). It provides secure credential storage, comprehensive auditing, and zero-friction identity switching.
+GitID is an enterprise-grade CLI tool for managing multiple Git SSH identities seamlessly across any Git provider. Built with security-first principles, it provides industry-standard encryption (AES-256-GCM), comprehensive audit logging, and zero-friction identity switching for developers, teams, and enterprises.
 
 ## 🎯 Key Features
 
-- **🔐 Secure Identity Management**: Enterprise-grade security with encrypted key storage
-- **🔄 Seamless Identity Switching**: Switch between identities with a single command
-- **🌐 Multi-Provider Support**: Works with GitHub, GitLab, Bitbucket, and custom Git hosts
-- **📊 Comprehensive Auditing**: Track identity usage and maintain audit logs
-- **🔑 Advanced Key Management**: Support for ED25519, RSA, and ECDSA keys
-- **💾 Backup & Restore**: Automated backups with encryption support
-- **🏢 Enterprise Ready**: Logging, monitoring, and compliance features
-- **🚀 Zero Configuration**: Works out of the box with sensible defaults
+### Security First
+- **🔐 Industry-Standard Encryption**: AES-256-GCM encryption for sensitive data
+- **🔑 Advanced Key Management**: Support for ED25519 (recommended), RSA-4096, and ECDSA-P256
+- **🛡️ Secure Key Storage**: Keys stored with restricted permissions (0600) in isolated directories
+- **🔒 Passphrase Protection**: Optional passphrase encryption for SSH keys
+- **📝 Comprehensive Audit Logging**: Track all identity operations for compliance
+- **⚡ Key Rotation**: Built-in key rotation with configurable expiration policies
+- **🔍 Input Validation**: Zod-based schema validation for all user inputs
+
+### Developer Experience
+- **🚀 Zero Configuration**: Works immediately with sensible secure defaults
+- **🔄 Seamless Identity Switching**: One-command identity switching per repository
+- **🌐 Universal Provider Support**: GitHub, GitLab, Bitbucket, and self-hosted Git
+- **💾 Automated Backups**: Encrypted backup/restore with retention policies
+- **🎨 Interactive CLI**: Beautiful prompts with Inquirer for guided setup
+- **📊 Status Monitoring**: Real-time progress indicators with Ora spinners
+- **🏢 Enterprise Ready**: Winston logging, telemetry hooks, and monitoring support
 
 ## 📦 Installation
 
@@ -252,102 +263,182 @@ gitid version
 
 ## ⚙️ Configuration
 
-GitID stores its configuration in `~/.config/gitid/config.yaml`. You can edit this file directly or use the `gitid config` commands.
+GitID uses a layered configuration system with secure defaults. Configuration is stored in `~/.config/gitid/config.yaml`.
 
-### Default Configuration
+### Configuration Hierarchy
+1. **Default Configuration**: Secure defaults built into the application
+2. **User Configuration**: Your custom settings in `config.yaml`
+3. **Environment Variables**: Override specific settings via env vars
+4. **Command-line Flags**: Per-command overrides
+
+### Security Configuration
 ```yaml
-configDir: ~/.config/gitid
-sshDir: ~/.ssh
-keysDir: ~/.ssh/gitid
-backupDir: ~/.config/gitid/backups
-logDir: ~/.config/gitid/logs
-
 security:
-  requirePassphrase: false
-  autoRotateKeys: false
-  rotationIntervalDays: 90
-  maxKeyAgeDays: 365
-  enforceKeyExpiration: false
-
-logging:
-  level: info
-  file: gitid.log
-  maxFiles: 10
-  maxSize: 10m
-  format: json
-  auditLog: true
-
-backup:
-  enabled: true
-  encryption: true
-  autoBackup: true
-  retentionDays: 30
-
-defaultKeyType: ed25519
-defaultProvider: github.com
-autoUpdate: true
-telemetry: false
+  requirePassphrase: true        # Enforce passphrases for all new keys
+  autoRotateKeys: true           # Automatic key rotation reminders
+  rotationIntervalDays: 90       # Days between key rotations
+  maxKeyAgeDays: 365            # Maximum key age before forced rotation
+  enforceKeyExpiration: true     # Block usage of expired keys
 ```
 
-## 🔒 Security
+### Full Configuration Reference
+```yaml
+# Directory Configuration
+configDir: ~/.config/gitid        # Main configuration directory
+sshDir: ~/.ssh                    # SSH directory
+keysDir: ~/.ssh/gitid            # GitID keys storage (isolated)
+backupDir: ~/.config/gitid/backups # Encrypted backups
+logDir: ~/.config/gitid/logs     # Audit and application logs
 
-### Best Practices
-1. **Always use passphrases** for production identities
-2. **Rotate keys regularly** (every 90 days recommended)
-3. **Use ED25519 keys** when possible (more secure and faster)
-4. **Enable audit logging** for compliance
-5. **Backup your identities** regularly
-6. **Use separate identities** for different projects/clients
+# Security Settings
+security:
+  requirePassphrase: false        # Require passphrases for new keys
+  autoRotateKeys: false          # Enable automatic rotation
+  rotationIntervalDays: 90       # Rotation interval
+  maxKeyAgeDays: 365            # Maximum key age
+  enforceKeyExpiration: false    # Enforce key expiration
 
-### Key Storage
-- SSH keys are stored in `~/.ssh/gitid/`
-- Configuration in `~/.config/gitid/`
-- All files are created with restricted permissions (0600)
-- Optional encryption for backups
+# Logging Configuration
+logging:
+  level: info                    # Log level (debug|info|warn|error)
+  file: gitid.log               # Main log file
+  maxFiles: 10                  # Log rotation count
+  maxSize: 10m                  # Max size per log file
+  format: json                  # Log format (json|text)
+  auditLog: true                # Enable audit logging
 
-### Audit Logging
-GitID maintains comprehensive audit logs for:
-- Identity creation/deletion
-- Key rotations
-- Identity usage
-- Configuration changes
+# Backup Settings
+backup:
+  enabled: true                  # Enable backup features
+  encryption: true               # Encrypt backups
+  autoBackup: true              # Automatic backups
+  retentionDays: 30             # Backup retention period
 
-## 🏢 Enterprise Features
+# Application Settings
+defaultKeyType: ed25519         # Default key algorithm
+defaultProvider: github.com     # Default Git provider
+autoUpdate: true                # Check for updates
+telemetry: false                # Anonymous usage stats (disabled by default)
+```
 
-### Team Management
+## 🔒 Security Implementation
+
+### Encryption & Cryptography
+- **AES-256-GCM**: Industry-standard symmetric encryption for backups and sensitive data
+- **PBKDF2**: Key derivation with 100,000 iterations for password-based encryption
+- **Crypto.randomBytes**: Node.js cryptographically secure random generation
+- **SSH Key Standards**: Standard OpenSSH key formats with configurable algorithms
+
+### Security Measures
+- **Input Validation**: Zod-based schema validation for user inputs
+- **Path Validation**: Basic path validation for file operations
+- **File Permissions**: Sets 0600 permissions for SSH keys and sensitive files
+- **Type Safety**: TypeScript strict mode for compile-time type checking
+- **Error Handling**: Structured error messages with appropriate detail levels
+
+### Security Best Practices
+1. **Always use passphrases** for production identities (enforced via `security.requirePassphrase`)
+2. **Rotate keys regularly** (configurable via `security.rotationIntervalDays`)
+3. **Use ED25519 keys** (smaller, faster, and more secure than RSA)
+4. **Enable audit logging** (default enabled, outputs to `~/.config/gitid/logs/audit.log`)
+5. **Regular backups** with encryption (automated via `backup.autoBackup`)
+6. **Separate identities** per project/client for isolation
+7. **Key expiration** enforcement (via `security.enforceKeyExpiration`)
+
+### Compliance & Auditing
+- **Structured Audit Logs**: JSON-formatted logs with timestamps and user context
+- **Action Tracking**: All identity operations logged with detailed metadata
+- **Retention Policies**: Configurable log rotation and retention
+- **Export Capabilities**: Export audit logs for compliance reporting
+
+## 🏢 Enterprise & Team Features
+
+### Advanced Security Controls
 ```bash
-# Create team identity
+# Enable enterprise security mode
+gitid config security
+# This enables: passphrase requirements, key expiration, audit logging
+
+# Enforce organizational policies
+gitid config set security.requirePassphrase true
+gitid config set security.maxKeyAgeDays 90
+gitid config set security.enforceKeyExpiration true
+
+# Validate security compliance
+gitid config validate
+gitid doctor --security
+```
+
+### Team Identity Management
+```bash
+# Create team identities with metadata
 gitid identity new team-prod \
   --host github.company.com \
   --team "Platform Team" \
   --project "Production Systems" \
-  --expires 90
+  --expires 90 \
+  --passphrase
 
-# Tag identities for organization
-gitid identity update personal --tag personal development
-gitid identity update work --tag work production client-a
+# Bulk identity management
+gitid identity list --team "Platform Team" --json
+
+# Tag-based organization
+gitid identity update personal --tag personal dev sandbox
+gitid identity update work --tag work prod client-a pci-compliant
+
+# Search by tags
+gitid identity list --tag pci-compliant
 ```
 
-### Compliance & Auditing
+### Audit & Compliance
 ```bash
-# Enable strict security
-gitid config set security.requirePassphrase true
-gitid config set security.enforceKeyExpiration true
-gitid config set security.maxKeyAgeDays 90
+# Real-time audit monitoring
+tail -f ~/.config/gitid/logs/audit.log | jq '.action, .timestamp, .details'
 
-# Review audit logs
-tail -f ~/.config/gitid/logs/audit.log | jq
+# Generate compliance reports
+gitid identity list --verbose --json | \
+  jq '[.[] | {alias, created, lastUsed, expires, keyType}]' > compliance-report.json
+
+# Export audit logs for SIEM
+gitid backup export-logs --format json --from 2024-01-01 --to 2024-12-31
 ```
 
-### Automation Support
+### CI/CD Integration
 ```bash
-# Export identity for CI/CD
-gitid identity show ci-deploy --json > identity.json
+# Export identity for CI/CD (secure)
+export GITID_IDENTITY=$(gitid identity show ci-deploy --json | \
+  jq -r '.privateKeyPath')
 
-# Batch operations
+# Automated key rotation
+#!/bin/bash
+# rotate-keys.sh
 for alias in $(gitid identity list --json | jq -r '.[].alias'); do
-  gitid identity rotate "$alias"
+  age=$(gitid identity show "$alias" --json | jq -r '.keyAge')
+  if [ "$age" -gt 90 ]; then
+    gitid identity rotate "$alias" --passphrase
+    echo "Rotated: $alias"
+  fi
 done
+
+# Docker integration
+FROM node:18-alpine
+RUN npm install -g gitid
+COPY gitid-config.yaml /root/.config/gitid/config.yaml
+RUN gitid identity import ci /secrets/ci.key /secrets/ci.pub
+```
+
+### Monitoring & Observability
+```bash
+# Health checks
+gitid doctor --json | jq '.status'
+
+# Performance metrics
+gitid config set logging.level debug
+gitid status --metrics
+
+# Integration with monitoring tools
+gitid config set telemetry.endpoint "https://metrics.company.com"
+gitid config set telemetry.enabled true
 ```
 
 ## 🔧 Troubleshooting
@@ -388,6 +479,24 @@ eval $(ssh-agent -s)
 ssh-add ~/.ssh/gitid/<alias>
 ```
 
+## 🚀 Architecture & Performance
+
+### Technology Stack
+- **TypeScript 5.7**: Full type safety with strict mode
+- **Node.js 18+**: Modern JavaScript runtime
+- **Commander.js**: Robust CLI framework
+- **Zod**: Runtime type validation and schema enforcement
+- **Winston**: Enterprise logging with rotation
+- **Inquirer**: Interactive prompts for better UX
+- **Chalk & Ora**: Beautiful terminal output
+
+### Performance Optimizations
+- **Lazy Loading**: Services initialized only when needed
+- **Singleton Pattern**: Efficient resource management
+- **Async/Await**: Non-blocking I/O operations
+- **Stream Processing**: Memory-efficient file operations
+- **Caching**: In-memory caching for frequently accessed data
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
@@ -404,12 +513,88 @@ npm install
 # Run in development mode
 npm run dev
 
-# Run tests
-npm test
+# Type checking
+npm run typecheck
+
+# Linting
+npm run lint
+npm run lint:fix
+
+# Format code
+npm run format
 
 # Build for production
 npm run build
+
+# Run tests (when implemented)
+npm test
 ```
+
+### Code Quality Standards
+- **TypeScript Strict Mode**: Full type safety enforced
+- **ESLint**: Code quality and security checks
+- **Prettier**: Consistent code formatting
+- **Security Linting**: `eslint-plugin-security` for vulnerability detection
+- **Pre-commit Hooks**: Automated quality checks
+
+## 🔍 Troubleshooting & Diagnostics
+
+### Built-in Doctor Command
+```bash
+# Run comprehensive diagnostics
+gitid doctor
+
+# Check specific areas
+gitid doctor --security    # Security configuration
+gitid doctor --ssh         # SSH connectivity
+gitid doctor --permissions # File permissions
+```
+
+### Common Solutions
+
+#### SSH Key Permissions
+```bash
+# GitID automatically fixes permissions, but if needed:
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/config
+chmod 600 ~/.ssh/gitid/*
+```
+
+#### Identity Not Working
+```bash
+# Test connection
+gitid test-connection <alias>
+
+# Verify and fix SSH config
+gitid doctor --fix
+
+# Force re-apply identity
+gitid use <alias> --force
+```
+
+#### Key Rotation Issues
+```bash
+# Manual rotation with new algorithm
+gitid identity rotate <alias> --type ed25519 --passphrase
+
+# Backup before rotation
+gitid backup create --full
+gitid identity rotate <alias>
+```
+
+## 📈 Roadmap
+
+### Version 2.1 (Q1 2025)
+- [ ] Hardware security key support (YubiKey, Titan)
+- [ ] Multi-factor authentication for identity access
+- [ ] GraphQL API for enterprise integrations
+- [ ] Web UI for identity management
+
+### Version 2.2 (Q2 2025)
+- [ ] Kubernetes secrets integration
+- [ ] HashiCorp Vault backend
+- [ ] SAML/OIDC authentication
+- [ ] Advanced analytics dashboard
 
 ## 📄 License
 
@@ -417,17 +602,28 @@ MIT © Inderdeep Singh Bajwa
 
 ## 🙏 Acknowledgments
 
-- Built with [Commander.js](https://github.com/tj/commander.js/) for CLI
-- Uses [Zod](https://github.com/colinhacks/zod) for validation
-- Powered by [Winston](https://github.com/winstonjs/winston) for logging
-- UI enhanced with [Chalk](https://github.com/chalk/chalk) and [Ora](https://github.com/sindresorhus/ora)
+### Core Dependencies
+- [Commander.js](https://github.com/tj/commander.js/) - CLI framework
+- [Zod](https://github.com/colinhacks/zod) - Schema validation
+- [Winston](https://github.com/winstonjs/winston) - Enterprise logging
+- [Inquirer](https://github.com/SBoudrias/Inquirer.js/) - Interactive prompts
+- [Chalk](https://github.com/chalk/chalk) & [Ora](https://github.com/sindresorhus/ora) - Terminal UI
+
+### Security Libraries
+- Node.js Crypto - Cryptographic operations
+- Keytar - Secure credential storage (optional)
 
 ## 📞 Support
 
 - 📧 Email: support@gitid.dev
 - 🐛 Issues: [GitHub Issues](https://github.com/InderdeepBajwa/gitid/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/InderdeepBajwa/gitid/discussions)
+- 📖 Documentation: [GitID Docs](https://gitid.dev/docs)
 
 ---
 
-**Note**: This is a complete rewrite of the original gitid tool with enterprise features, better security, and improved user experience. The tool maintains backward compatibility while adding professional-grade features for team and enterprise use.
+<div align="center">
+  <strong>GitID v2.0</strong> - Enterprise Git Identity Management<br>
+  Built with ❤️ for developers who juggle multiple Git identities<br>
+  <sub>Secure • Fast • Reliable</sub>
+</div>

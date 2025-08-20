@@ -80,7 +80,8 @@ export function registerIdentityCommands(program: Command, services: Services): 
             project: options.project,
             expiresAt: options.expires 
               ? new Date(Date.now() + parseInt(options.expires) * 24 * 60 * 60 * 1000).toISOString()
-              : undefined
+              : undefined,
+            usageCount: 0
           }
         };
 

@@ -341,7 +341,8 @@ export class IdentityService {
         updatedAt: new Date().toISOString(),
         metadata: {
           ...identity.metadata,
-          lastRotated: new Date().toISOString()
+          lastRotated: new Date().toISOString(),
+          usageCount: identity.metadata?.usageCount || 0
         }
       };
 
