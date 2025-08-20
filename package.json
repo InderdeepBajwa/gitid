@@ -1,7 +1,7 @@
 {
   "name": "gitid",
-  "version": "1.0.0",
-  "description": "Manage multiple git SSH identities across any provider (GitHub, GitLab, Bitbucket, etc.)",
+  "version": "2.0.0",
+  "description": "Enterprise-grade multi-provider Git identity management system with secure credential storage and comprehensive auditing",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/InderdeepBajwa/gitid.git"
@@ -9,33 +9,65 @@
   "author": "Inderdeep Singh Bajwa",
   "license": "MIT",
   "private": false,
-  "type": "commonjs",
-  "main": "dist/index.js",
+  "type": "module",
+  "main": "./dist/index.js",
   "bin": {
-    "gitid": "./dist/index.js"
+    "gitid": "./dist/cli/index.js"
   },
   "files": [
     "dist/**/*",
     "README.md",
-    "LICENSE",
-    "package.json",
-    "src/index.ts",
-    "src/runner.ts",
-    "tsconfig.json"
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "test": "echo 'No tests yet'"
+    "build": "tsc && chmod +x dist/cli/index.js",
+    "dev": "tsx watch src/cli/index.ts",
+    "start": "node dist/cli/index.js",
+    "test": "echo 'Tests will be implemented in next iteration' && exit 0",
+    "test:coverage": "echo 'Tests will be implemented in next iteration' && exit 0",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "prebuild": "npm run typecheck",
+    "prepare": "husky install",
+    "release": "changeset publish"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "@inquirer/prompts": "^7.0.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "joi": "^17.13.0",
+    "keytar": "^7.9.0",
+    "ora": "^8.0.1",
+    "winston": "^3.17.0",
+    "yaml": "^2.6.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.9",
-    "typescript": "^5.5.4"
+    "@changesets/cli": "^2.27.10",
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-security": "^3.0.0",
+    "husky": "^9.1.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }

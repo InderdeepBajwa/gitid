@@ -1,3 +1,67 @@
-dist
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
 *.tgz
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Cache
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# GitID specific
+.gitid/
+*.backup
+*.key
+*.enc
+
+# Debug
+.vscode/launch.json
