@@ -1,0 +1,109 @@
+name: Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to npm from the main branch"
+        required: false
+        type: boolean
+        default: false
+      version:
+        description: "Optional version to publish without creating a git tag"
+        required: false
+        type: string
+
+jobs:
+  verify:
+    name: Verify package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Build package
+        run: npm run build
+
+      - name: Run tests
+        run: npm test -- --runInBand
+
+      - name: Dry run package
+        run: npm pack --dry-run
+
+  publish:
+    name: Publish package
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: |
+      startsWith(github.ref, 'refs/tags/v') ||
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main' &&
+        github.event.inputs.publish == 'true'
+      )
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Set version from manual input
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+        run: npm version "${{ github.event.inputs.version }}" --no-git-tag-version
+
+      - name: Verify package version matches tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          echo "Tag version: ${TAG_VERSION}"
+          echo "Package version: ${PACKAGE_VERSION}"
+          if [ "${TAG_VERSION}" != "${PACKAGE_VERSION}" ]; then
+            echo "Tag version does not match package.json version."
+            exit 1
+          fi
+
+      - name: Build package
+        run: npm run build
+
+      - name: Check npm authentication
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Dry run publish
+        run: npm publish --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
