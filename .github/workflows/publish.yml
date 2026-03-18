@@ -36,7 +36,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Build package
         run: npm run build
@@ -72,7 +72,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Set version from manual input
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''

@@ -27,7 +27,7 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty  && yarn prepare-commit-msg"
+      "prepare-commit-msg": "exec < /dev/tty && npm run prepare-commit-msg"
     }
   },
   "devDependencies": {
