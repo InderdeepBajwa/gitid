@@ -1,13 +1,27 @@
 import fs from "fs";
 import os from "os";
 import { execSync } from "child_process";
+import {
+  SSHConfigInspector,
+  formatIdentityRepairPrompt,
+  formatLegacyIdentityWarning,
+} from "./sshConfig";
+import { buildGitRemoteUrl, parseGitRemoteUrl } from "./gitRemote";
 
 const SSH_FOLDER_PATH = `${os.homedir()}/.ssh`;
 const SSH_CONFIG_FILE_PATH = `${SSH_FOLDER_PATH}/config`;
-const GIT_REGEX = /git@(.*):(.*)\/(.*).git/;
+const sshConfigInspector = new SSHConfigInspector(
+  SSH_FOLDER_PATH,
+  SSH_CONFIG_FILE_PATH
+);
 
 export class CLI {
   public async createNewKey(keyAlias: string = "") {
+    if (!this.isValidIdentityAlias(keyAlias)) {
+      console.error("Please provide an identity name with letters, numbers, '-' or '_'.");
+      return;
+    }
+
     try {
       await this.createSSHKey(keyAlias);
 
@@ -32,15 +46,17 @@ export class CLI {
       return;
     }
 
-    const gitRepoUrl = this.getGitRepoUrl();
+    const gitRepo = this.getGitRepo();
 
-    const match = gitRepoUrl.match(GIT_REGEX);
+    if (!gitRepo) {
+      console.error(
+        "Could not detect an SSH remote like 'git@identity:owner/repo.git' for origin."
+      );
+      return;
+    }
 
-    match && match[1]
-      ? console.log(`Current identity: ${match[1]}`)
-      : console.error(
-          "Could not find an established identity for this repository."
-        );
+    console.log(`Current identity: ${gitRepo.host}`);
+    this.printIdentityNotice(gitRepo.host);
   }
 
   public listAllIdentities(): void {
@@ -49,14 +65,26 @@ export class CLI {
       return;
     }
 
-    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
-    const identities = data.match(/Host (.*)\n/g);
+    const identities = sshConfigInspector.listIdentities();
+    const availableIdentities = identities.filter(
+      (identity) => identity.status === "ready" || identity.status === "legacy"
+    );
+    const brokenIdentities = identities.filter(
+      (identity) => identity.status === "broken"
+    );
 
-    identities && identities.length > 0
-      ? identities.map((identity: string) => {
-          console.log(`- ${identity.replace("Host ", "").replace("\n", "")}`);
-        })
-      : console.error("No identities found.");
+    if (availableIdentities.length === 0) {
+      console.error("No usable identities found.");
+    } else {
+      availableIdentities.forEach((identity) => {
+        const suffix = identity.status === "legacy" ? " (legacy config)" : "";
+        console.log(`- ${identity.alias}${suffix}`);
+      });
+    }
+
+    brokenIdentities.forEach((identity) => {
+      console.error(formatIdentityRepairPrompt(identity, SSH_CONFIG_FILE_PATH));
+    });
   }
 
   public changeIdentity(identity: string = ""): void {
@@ -65,67 +93,79 @@ export class CLI {
       return;
     }
 
-    if (!this.isIdentityAvaialble(identity)) {
+    if (!this.isValidIdentityAlias(identity)) {
+      console.error("Please provide an identity name with letters, numbers, '-' or '_'.");
+      return;
+    }
+
+    const requestedIdentity = this.inspectIdentity(identity);
+    if (!requestedIdentity) {
       console.error(`Requested identity '${identity}' is not available.`);
       return;
     }
 
-    const originalRepoUrl = this.getGitRepoUrl();
-    const match = originalRepoUrl.match(GIT_REGEX);
+    if (requestedIdentity.status === "broken") {
+      console.error(formatIdentityRepairPrompt(requestedIdentity, SSH_CONFIG_FILE_PATH));
+      return;
+    }
 
-    if (!match || !match[1] || !match[3]) {
+    if (requestedIdentity.status === "legacy") {
+      console.error(formatLegacyIdentityWarning(requestedIdentity));
+    }
+
+    const gitRepo = this.getGitRepo();
+
+    if (!gitRepo) {
       console.error(
-        "Could not find an established identity for this repository."
+        "Could not detect an SSH remote like 'git@identity:owner/repo.git' for origin."
       );
       return;
-    } else if (match[1] === identity) {
+    }
+
+    if (gitRepo.host === identity) {
       console.error(`Identity '${identity}' is already in use.`);
       return;
     }
 
-    const newRepoUrl = `git@${identity}:${match[2]}/${match[3]}.git`;
+    const newRepoUrl = buildGitRemoteUrl({
+      ...gitRepo,
+      host: identity,
+    });
     execSync(`git remote set-url origin ${newRepoUrl}`, { stdio: "inherit" });
     console.log(`Identity changed to '${identity}' successfully.`);
   }
 
   public showPublicKey(identity: string = ""): void {
-    if (!this.isIdentityAvaialble(identity)) {
+    if (!this.isValidIdentityAlias(identity)) {
+      console.error("Please provide an identity name with letters, numbers, '-' or '_'.");
+      return;
+    }
+
+    const identityConfig = this.inspectIdentity(identity);
+
+    if (!identityConfig) {
       console.error(`Requested identity '${identity}' is not available.`);
       return;
     }
 
-    if (!fs.existsSync(SSH_CONFIG_FILE_PATH)) {
-      console.error("SSH config file does not exist.");
+    if (identityConfig.status === "broken") {
+      console.error(formatIdentityRepairPrompt(identityConfig, SSH_CONFIG_FILE_PATH));
       return;
     }
 
-    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
+    if (identityConfig.status === "legacy") {
+      console.error(formatLegacyIdentityWarning(identityConfig));
+    }
 
-    const hosts = data.split("Host ");
-    const host = hosts.find((host) => host.startsWith(identity));
-
-    if (!host) {
-      console.error(`Requested identity '${identity}' is not available.`);
+    if (!identityConfig.publicKeyPath || !fs.existsSync(identityConfig.publicKeyPath)) {
+      console.error(
+        `Could not find public key for identity '${identity}'. Check the key files in your SSH config.`
+      );
       return;
     }
 
-    const identityFileMatch = host.match(/IdentityFile (.*)\n/);
-
-    if (identityFileMatch && identityFileMatch[1]) {
-      let publicKeyPath = identityFileMatch[1].trim();
-
-      publicKeyPath = publicKeyPath.replace("~", os.homedir());
-      if (!publicKeyPath.endsWith(".pub")) {
-        publicKeyPath += ".pub";
-      }
-
-      if (fs.existsSync(publicKeyPath)) {
-        const publicKey = fs.readFileSync(publicKeyPath, "utf8");
-        console.log(publicKey);
-      } else {
-        console.error("Could not find public key.");
-      }
-    }
+    const publicKey = fs.readFileSync(identityConfig.publicKeyPath, "utf8");
+    console.log(publicKey);
   }
 
   private async createSSHKey(keyAlias: string) {
@@ -144,18 +184,23 @@ export class CLI {
   }
 
   private async addHostToConfig(keyAlias: string) {
-    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
+    const existingIdentity = this.inspectIdentity(keyAlias);
 
-    if (data.indexOf(keyAlias) > -1) {
+    if (existingIdentity) {
+      if (existingIdentity.status === "broken") {
+        console.error(formatIdentityRepairPrompt(existingIdentity, SSH_CONFIG_FILE_PATH));
+        return;
+      }
+
       console.error(
-        `A host name already exists with the same name. ${keyAlias}. \
-          Please try removing it or try a different name.`
+        `A host named '${keyAlias}' already exists in your SSH config. Please remove it or choose a different identity name.`
       );
-    } else {
-      const newHost = this.buildHostString(keyAlias);
-      await fs.appendFileSync(SSH_CONFIG_FILE_PATH, newHost);
-      console.log(`New host '${keyAlias}' added successfully.`);
+      return;
     }
+
+    const newHost = this.buildHostString(keyAlias);
+    await fs.appendFileSync(SSH_CONFIG_FILE_PATH, newHost);
+    console.log(`New host '${keyAlias}' added successfully.`);
   }
 
   private buildHostString(keyAlias: string): string {
@@ -191,19 +236,45 @@ export class CLI {
     }
   }
 
-  private isIdentityAvaialble(identity: string): boolean {
-    if (!fs.existsSync(SSH_CONFIG_FILE_PATH)) {
-      return false;
-    }
-
-    const data = fs.readFileSync(SSH_CONFIG_FILE_PATH, "utf8");
-    return data.includes(identity);
-  }
-
   private getGitRepoUrl(): string {
     return execSync("git remote get-url origin", {
       encoding: "utf8",
       stdio: "pipe",
-    }).toString();
+    })
+      .toString()
+      .trim();
+  }
+
+  private getGitRepo() {
+    return parseGitRemoteUrl(this.getGitRepoUrl());
+  }
+
+  private inspectIdentity(identity: string) {
+    if (!sshConfigInspector.configExists()) {
+      return null;
+    }
+
+    return sshConfigInspector.getIdentity(identity);
+  }
+
+  private printIdentityNotice(identity: string): void {
+    const identityConfig = this.inspectIdentity(identity);
+
+    if (!identityConfig) {
+      return;
+    }
+
+    if (identityConfig.status === "broken") {
+      console.error(formatIdentityRepairPrompt(identityConfig, SSH_CONFIG_FILE_PATH));
+      return;
+    }
+
+    if (identityConfig.status === "legacy") {
+      console.error(formatLegacyIdentityWarning(identityConfig));
+    }
+  }
+
+  private isValidIdentityAlias(identity: string): boolean {
+    return /^[A-Za-z0-9_-]+$/.test(identity);
   }
 }
