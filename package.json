@@ -1,7 +1,7 @@
 {
   "name": "gitid",
-  "version": "0.2.2",
-  "description": "Manage multiple git accounts easily",
+  "version": "0.2.3",
+  "description": "Manage multiple Git SSH identities from the command line",
   "main": "dist/index.js",
   "repository": "https://github.com/InderdeepBajwa/gitid",
   "author": "Inderdeep Singh Bajwa",

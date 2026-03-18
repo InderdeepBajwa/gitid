@@ -1,81 +1,99 @@
-# GitID - Manage Multiple Git Identities Easily
+# GitID
 
-GitID is a convenient command-line interface (CLI) that allows you seamlessly manage and switch between multiple git SSH identities on a single user account.
+GitID is a CLI for creating, listing, inspecting, and switching Git SSH identities on one machine.
 
-**Caution:** While this program works well, it is still work in progress. I recommend backing up your ~/.ssh directory before using this.
+It is designed for people who regularly work across personal, work, and client repositories and want a simple way to manage SSH aliases without manually editing remotes every time.
+
+GitID edits `~/.ssh/config`, creates `ed25519` SSH keys, and updates repository remotes to use your selected SSH host alias.
+
+**Caution:** GitID modifies SSH configuration. Back up `~/.ssh` before using it for the first time.
 
 ## Installation
 
-```
+```bash
 npm install -g gitid
 ```
 
-## Usage
+## Quick Start
 
-Here's how you can use the different commands of this CLI:
+Create an identity:
 
-- **Create new identity:**
+```bash
+gitid new personal
+```
 
-  This will create a new `ed25519` SSH identity.
+List configured identities:
 
-  ```
-  gitid new <identity>
-  ```
+```bash
+gitid list
+```
 
-  ```
-  # example
-  gitid new personal
-  ```
+Switch the current repository to a different SSH identity:
 
-  Replace `<identity>` with the desired name for your new identity.
+```bash
+gitid use personal
+```
 
-- **List identities:**
+Show the public key so you can add it to GitHub or another Git provider:
 
-  This will list all available identities.
+```bash
+gitid show personal
+```
 
-  ```
-  gitid list
-  ```
+## Commands
 
-- **Check current identity:**
+### `gitid new <identity>`
 
-  This will output the current identity.
+Creates a new `ed25519` SSH identity and adds a matching `Host` entry to `~/.ssh/config`.
 
-  ```
-  gitid current
-  ```
+Example:
 
-- **Use identity:**
+```bash
+gitid new work
+```
 
-  This will change the Git identity for the repository in the current directory to a specified identity.
+### `gitid list`
 
-  ```
-  gitid use <identity>
-  ```
+Lists the SSH host aliases GitID can manage from your SSH config.
 
-  ```
-  # example
-  gitid use personal
-  ```
+If GitID detects an outdated or broken config entry, it prints a repair prompt showing the `Host` block you should restore.
 
-  Replace `<identity>` with the name of the identity you want to use.
+### `gitid current`
 
-- **Show public key:**
+Prints the SSH identity currently used by the repository in your current working directory.
 
-  This command fetches and displays the public key of a specified identity.
-  
-  ```
-  gitid show <identity>
-  ```
-  
-  ```
-  # example
-  gitid show personal
-  ```
-  
-  Replace `<identity>` with the name of the identity you want to show the public key for. 
-  
-  This command reads the SSH config file, extracts the path of the corresponding `IdentityFile` for the specified identity, and then reads and prints the contents of the file. If the identity or the key file is not found, it will print an appropriate error message. 
+### `gitid use <identity>`
+
+Updates the current repository's `origin` remote to use the selected SSH alias.
+
+GitID preserves nested repository paths and supports remotes with or without the `.git` suffix.
+
+Example:
+
+```bash
+gitid use work
+```
+
+### `gitid show <identity>`
+
+Reads the matching `IdentityFile` from `~/.ssh/config` and prints the public key contents.
+
+Example:
+
+```bash
+gitid show work
+```
+
+## SSH Config Compatibility
+
+GitID now handles several older real-world config cases more safely:
+
+- exact alias matching instead of substring matching
+- legacy `gitta_<identity>` key paths from early releases
+- broken historical `IdentityFile` paths created by older GitID versions
+- clearer repair prompts when the SSH config is out of sync with the local key files
+
+If a config entry is unsupported or broken, GitID will not silently continue. It will tell you what is wrong and print the `Host` block that should be restored in `~/.ssh/config`.
 
 ## TODO
 
@@ -95,24 +113,28 @@ GitID is your solution if you are:
 
 First, clone the repository:
 
-```
+```bash
 git clone https://github.com/inderdeepbajwa/gitid.git
 cd gitid
 ```
 
 Then install the dependencies:
 
-```
+```bash
 npm install
 ```
 
 Finally, build the code:
 
-```
+```bash
 npm run build
 ```
 
----
+Run the tests:
+
+```bash
+npm test -- --runInBand
+```
 
 ## Note
 
