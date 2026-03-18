@@ -26,5 +26,5 @@ const commandsMap: {
 commandsMap[command]
   ? commandsMap[command](option)
   : console.log(
-      "Usage: gitid <command> <option>, where <command> can be [new, status, list, current, use]"
+      "Usage: gitid <command> <option>, where <command> can be [new, status, list, current, use, show]"
     );

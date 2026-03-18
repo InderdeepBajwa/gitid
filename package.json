@@ -7,6 +7,11 @@
   "author": "Inderdeep Singh Bajwa",
   "license": "MIT",
   "private": false,
+  "files": [
+    "dist/**/*",
+    "LICENSE",
+    "README.md"
+  ],
   "bin": {
     "gitid": "./dist/index.js"
   },
@@ -14,7 +19,7 @@
     "start": "node dist/index.js",
     "build": "tsc",
     "test": "jest",
-    "postinstall": "husky install",
+    "prepare": "node scripts/prepare.js",
     "prepack": "pinst --disable",
     "postpack": "pinst --enable",
     "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
