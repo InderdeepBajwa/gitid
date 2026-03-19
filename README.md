@@ -5,6 +5,7 @@ GitID is a CLI for creating, listing, inspecting, and switching Git SSH identiti
 It is designed for people who regularly work across personal, work, and client repositories and want a simple way to manage SSH aliases without manually editing remotes every time.
 
 GitID edits `~/.ssh/config`, creates `ed25519` SSH keys, and updates repository remotes to use your selected SSH host alias.
+It can also manage repository-local `git config user.name` and `git config user.email` per identity.
 
 **Caution:** GitID modifies SSH configuration. Back up `~/.ssh` before using it for the first time.
 
@@ -19,7 +20,7 @@ npm install -g gitid
 Create an identity:
 
 ```bash
-gitid new personal
+gitid new personal --name "Jane Doe" --email jane@example.com
 ```
 
 List configured identities:
@@ -40,11 +41,18 @@ Show the public key so you can add it to GitHub or another Git provider:
 gitid show personal
 ```
 
+Store or update the git author used when that identity is selected:
+
+```bash
+gitid set personal --name "Jane Doe" --email jane@example.com
+```
+
 ## Commands
 
 ### `gitid new <identity>`
 
 Creates a new `ed25519` SSH identity and adds a matching `Host` entry to `~/.ssh/config`.
+You can also set git author metadata during creation with `--name` and `--email`.
 
 Example:
 
@@ -65,6 +73,7 @@ Prints the SSH identity currently used by the repository in your current working
 ### `gitid use <identity>`
 
 Updates the current repository's `origin` remote to use the selected SSH alias.
+If the identity has managed git author settings, GitID applies them to the current repository's local git config.
 
 GitID preserves nested repository paths and supports remotes with or without the `.git` suffix.
 
@@ -72,6 +81,12 @@ Example:
 
 ```bash
 gitid use work
+```
+
+To skip author metadata for a one-off switch:
+
+```bash
+gitid use work --skip-author
 ```
 
 ### `gitid show <identity>`
@@ -84,6 +99,19 @@ Example:
 gitid show work
 ```
 
+### `gitid set <identity>`
+
+Stores git author metadata for an identity so `gitid use <identity>` can apply it to the current repository.
+
+Examples:
+
+```bash
+gitid set work --name "Jane Doe" --email jane@example.com
+gitid set work --clear-email
+```
+
+`--clear-name` and `--clear-email` tell GitID to unset the local repo value for that field the next time the identity is applied.
+
 ## SSH Config Compatibility
 
 GitID now handles several older real-world config cases more safely:
@@ -92,14 +120,9 @@ GitID now handles several older real-world config cases more safely:
 - legacy `gitta_<identity>` key paths from early releases
 - broken historical `IdentityFile` paths created by older GitID versions
 - clearer repair prompts when the SSH config is out of sync with the local key files
+- managed git author metadata that can be reapplied when a repository drifts out of sync
 
 If a config entry is unsupported or broken, GitID will not silently continue. It will tell you what is wrong and print the `Host` block that should be restored in `~/.ssh/config`.
-
-## TODO
-
-[ ] Option to set user.name and user.email in an identity
-
-[ ] Optionally exclude user.name and user.email settings from an identity
 
 ## Do I need GitID?
 
