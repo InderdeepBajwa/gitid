@@ -12,6 +12,10 @@ import {
   formatManagedAuthorSettings,
   hasManagedAuthorSettings,
 } from "./identityProfiles";
+import {
+  buildCompletionScript,
+  isSupportedShell,
+} from "./completion";
 
 const SSH_FOLDER_PATH = `${os.homedir()}/.ssh`;
 const SSH_CONFIG_FILE_PATH = `${SSH_FOLDER_PATH}/config`;
@@ -94,9 +98,7 @@ export class CLI {
     }
 
     const identities = sshConfigInspector.listIdentities();
-    const availableIdentities = identities.filter(
-      (identity) => identity.status === "ready" || identity.status === "legacy"
-    );
+    const availableIdentities = this.getManageableIdentities(identities);
     const brokenIdentities = identities.filter(
       (identity) => identity.status === "broken"
     );
@@ -126,6 +128,23 @@ export class CLI {
 
     brokenIdentities.forEach((identity) => {
       console.error(formatIdentityRepairPrompt(identity, SSH_CONFIG_FILE_PATH));
+    });
+  }
+
+  public printCompletionScript(shell: string = ""): void {
+    if (!isSupportedShell(shell)) {
+      console.error("Usage: gitid completion <bash|zsh>");
+      return;
+    }
+
+    console.log(buildCompletionScript(shell));
+  }
+
+  public printIdentityCompletions(): void {
+    const identities = this.getManageableIdentities(sshConfigInspector.listIdentities());
+
+    identities.forEach((identity) => {
+      console.log(identity.alias);
     });
   }
 
@@ -553,6 +572,14 @@ export class CLI {
 
   private isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  private getManageableIdentities(
+    identities = sshConfigInspector.listIdentities()
+  ) {
+    return identities.filter(
+      (identity) => identity.status === "ready" || identity.status === "legacy"
+    );
   }
 
   private isValidIdentityAlias(identity: string): boolean {

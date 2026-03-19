@@ -47,6 +47,13 @@ Store or update the git author used when that identity is selected:
 gitid set personal --name "Jane Doe" --email jane@example.com
 ```
 
+Enable shell tab completion:
+
+```bash
+gitid completion zsh > "${fpath[1]}/_gitid"
+autoload -Uz compinit && compinit
+```
+
 ## Commands
 
 ### `gitid new <identity>`
@@ -111,6 +118,24 @@ gitid set work --clear-email
 ```
 
 `--clear-name` and `--clear-email` tell GitID to unset the local repo value for that field the next time the identity is applied.
+
+### `gitid completion <bash|zsh>`
+
+Prints a shell completion script that adds tab completion for commands, shells, and identity aliases.
+
+Examples:
+
+```bash
+gitid completion bash >> ~/.bashrc
+source ~/.bashrc
+```
+
+```bash
+mkdir -p ~/.zsh/completions
+gitid completion zsh > ~/.zsh/completions/_gitid
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit && compinit
+```
 
 ## SSH Config Compatibility
 

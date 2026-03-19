@@ -63,10 +63,12 @@ const commandsMap: Record<string, () => void | Promise<void>> = {
   use: () => cli.changeIdentity(parsedArgs.option, parsedArgs.flags),
   show: () => cli.showPublicKey(parsedArgs.option),
   set: () => cli.setIdentityProfile(parsedArgs.option, parsedArgs.flags),
+  completion: () => cli.printCompletionScript(parsedArgs.option),
+  "__complete-identities": () => cli.printIdentityCompletions(),
 };
 
 commandsMap[parsedArgs.command]
   ? commandsMap[parsedArgs.command]()
   : console.log(
-      "Usage: gitid <command> <option>, where <command> can be [new, status, list, current, use, show, set]"
+      "Usage: gitid <command> <option>, where <command> can be [new, status, list, current, use, show, set, completion]"
     );
